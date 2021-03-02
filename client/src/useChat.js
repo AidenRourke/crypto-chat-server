@@ -3,6 +3,7 @@ import socketIOClient from "socket.io-client";
 
 const NEW_CHAT_MESSAGE_EVENT = "newChatMessage";
 const SOCKET_SERVER_URL = "http://Gettingstartedapp-env.eba-sm3mz4hp.us-east-2.elasticbeanstalk.com";
+// const SOCKET_SERVER_URL = "http://localhost:4000";
 
 const useChat = (roomId) => {
     const [messages, setMessages] = useState([]);
