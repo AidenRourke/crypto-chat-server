@@ -1,11 +1,11 @@
 const server = require("http").createServer();
+const PORT = process.env.PORT || 4000;
 const io = require("socket.io")(server, {
     cors: {
         origin: "*",
     },
 });
 
-const PORT = 4000;
 const NEW_CHAT_MESSAGE_EVENT = "newChatMessage";
 
 io.on("connection", (socket) => {
