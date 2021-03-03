@@ -9,20 +9,54 @@ const io = require("socket.io")(server, {
 
 const NEW_CHAT_MESSAGE_EVENT = "newChatMessage";
 
+io.use((socket, next) => {
+    const username = socket.handshake.auth.username;
+    if (!username) {
+        return next(new Error("invalid username"));
+    }
+    socket.username = username;
+    next();
+});
+
+const getUsers = () => {
+    const users = [];
+    for (let [id, socket] of io.of("/").sockets) {
+        users.push({
+            userID: id,
+            username: socket.username,
+        });
+    }
+    return users;
+};
+
 io.on("connection", (socket) => {
+    socket.on(NEW_CHAT_MESSAGE_EVENT, ({to, content}) => {
+        const users = getUsers();
 
-    // Join a conversation
-    const { roomId } = socket.handshake.query;
-    socket.join(roomId);
+        console.log("User list:");
+        console.log(users);
 
-    // Listen for new messages
-    socket.on(NEW_CHAT_MESSAGE_EVENT, (data) => {
-        io.in(roomId).emit(NEW_CHAT_MESSAGE_EVENT, data);
+        const receiver = users.find(user => user.username === to);
+        const sender = users.find(user => user.userID === socket.id);
+
+        console.log(`Handling message from: ${sender.username} to: ${receiver.username}`)
+
+        io.to(receiver.userID).emit(NEW_CHAT_MESSAGE_EVENT, {
+            from: sender.username,
+            content,
+        });
     });
 
-    // Leave the room if the user closes the socket
+    /*
+    * Group messaging
+    * Create room on new group event
+    * Adding users -
+    * */
     socket.on("disconnect", () => {
-        socket.leave(roomId);
+        const users = getUsers();
+        console.log(`Disconnecting: ${socket.id}`);
+        console.log("User list:");
+        console.log(users);
     });
 });
 

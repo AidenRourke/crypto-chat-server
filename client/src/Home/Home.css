@@ -12,6 +12,7 @@
     padding: 24px 12px;
     border-radius: 7px;
     font-size: 24px;
+    margin-bottom: 20px;
 }
 
 .text-input-field:focus {
@@ -19,7 +20,6 @@
 }
 
 .enter-room-button {
-    margin-top: 20px;
     padding: 24px 12px;
     font-size: 28px;
     background: #31a24c;

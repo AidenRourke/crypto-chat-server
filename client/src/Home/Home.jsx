@@ -4,35 +4,28 @@ import {Link} from "react-router-dom";
 import "./Home.css";
 
 const Home = () => {
-    const [roomName, setRoomName] = React.useState("");
-    const [userName, setUserName] = React.useState("");
+    const [username, setUsername] = React.useState("");
+    const [to, setTo] = React.useState("");
 
-    const handleRoomNameChange = (event) => {
-        setRoomName(event.target.value);
-    };
-
-    const handleUserNameChange = (event) => {
-        setUserName(event.target.value);
-    };
 
     return (
         <div className="home-container">
             <input
                 type="text"
-                placeholder="Room"
-                value={roomName}
-                onChange={handleRoomNameChange}
+                placeholder="Sender Name"
+                value={username}
+                onChange={event => setUsername(event.target.value)}
                 className="text-input-field"
             />
             <input
                 type="text"
-                placeholder="Your Name"
-                value={userName}
-                onChange={handleUserNameChange}
+                placeholder="Receiver Name"
+                value={to}
+                onChange={event => setTo(event.target.value)}
                 className="text-input-field"
             />
-            <Link to={{pathname: `/${roomName}`, state: {userName: userName}}} className="enter-room-button">
-                Join room
+            <Link to={{pathname: `/${to}`, state: {username}}} className="enter-room-button">
+                Begin Conversation
             </Link>
         </div>
     );

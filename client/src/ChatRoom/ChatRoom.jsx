@@ -4,45 +4,42 @@ import "./ChatRoom.css";
 import useChat from "../useChat";
 
 const ChatRoom = (props) => {
-    const {roomId} = props.match.params;
-    const {userName} = props.location.state;
-    const {messages, sendMessage} = useChat(roomId);
     const [newMessage, setNewMessage] = React.useState("");
+
+    const {to} = props.match.params;
+    const {username} = props.location.state;
+
+    const {messages, sendMessage} = useChat(username);
+
+    const coversation = messages[to] || [];
 
     const handleNewMessageChange = (event) => {
         setNewMessage(event.target.value);
     };
 
     const handleSendMessage = () => {
-        console.log(userName)
-        sendMessage(newMessage, userName);
+        sendMessage(to, newMessage);
         setNewMessage("");
     };
 
     return (
         <div className="chat-room-container">
-            <h1 className="room-name">Room: {roomId}</h1>
+            <h1 className="room-name">User: {to}</h1>
             <div className="messages-container">
                 <ol className="messages-list">
-                    {messages.map((message, i) => (
-                        <div>
-                            { !message.ownedByCurrentUser && 
-                            <li
-                                key={i}
-                                className={`message-item received-name"`}
-                            > {message.senderName} </li>
-                            }
-                            
-                            <li
-                                key={i}
-                                className={`message-item ${
-                                    message.ownedByCurrentUser ? "my-message" : "received-message"
-                                    }`}
-                            >
-                                {message.body}
-                            </li>
-                        </div>
-                    ))}
+                    {coversation.map((message, i) => {
+                            const fromSelf = message.from === username;
+                            return <div key={i}>
+                                {!fromSelf &&
+                                    <label className={`message-item received-name`}>{message.from}</label>
+                                }
+
+                                <li className={`message-item ${fromSelf ? "my-message" : "received-message"}`}>
+                                    {message.content}
+                                </li>
+                            </div>
+                        })
+                    }
                 </ol>
             </div>
             <textarea

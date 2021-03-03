@@ -1,41 +1,51 @@
-import { useEffect, useRef, useState } from "react";
-import socketIOClient from "socket.io-client";
+import {useEffect, useRef, useState} from "react";
+import io from "socket.io-client";
 
 const NEW_CHAT_MESSAGE_EVENT = "newChatMessage";
-const SOCKET_SERVER_URL = "http://Gettingstartedapp-env.eba-sm3mz4hp.us-east-2.elasticbeanstalk.com";
-// const SOCKET_SERVER_URL = "http://localhost:4000";
+// const SOCKET_SERVER_URL = "http://Gettingstartedapp-env.eba-sm3mz4hp.us-east-2.elasticbeanstalk.com";
+const SOCKET_SERVER_URL = "http://localhost:4000";
 
-const useChat = (roomId) => {
-    const [messages, setMessages] = useState([]);
+const useChat = username => {
+    const [messages, setMessages] = useState({});
     const socketRef = useRef();
 
     useEffect(() => {
-        socketRef.current = socketIOClient(SOCKET_SERVER_URL, {
-            query: { roomId },
+        socketRef.current = io(SOCKET_SERVER_URL, {
+            auth: {
+                username // Replace this with token eventually
+            }
         });
 
-        socketRef.current.on(NEW_CHAT_MESSAGE_EVENT, (message) => {
-            const incomingMessage = {
-                ...message,
-                ownedByCurrentUser: message.senderId === socketRef.current.id,
-            };
-            setMessages((messages) => [...messages, incomingMessage]);
+        socketRef.current.on(NEW_CHAT_MESSAGE_EVENT, ({from, content}) => {
+            setMessages(messages => {
+                const prevMessages = messages[from] || [];
+                return {
+                    ...messages,
+                    [from]: [...prevMessages, {content, from}]
+                };
+            });
         });
 
         return () => {
             socketRef.current.disconnect();
         };
-    }, [roomId]);
+    }, []);
 
-    const sendMessage = (messageBody, userName) => {
+    const sendMessage = (to, content) => {
         socketRef.current.emit(NEW_CHAT_MESSAGE_EVENT, {
-            body: messageBody,
-            senderName: userName,
-            senderId: socketRef.current.id,
+            content,
+            to
+        });
+        setMessages(messages => {
+            const prevMessages = messages[to] || [];
+            return {
+                ...messages,
+                [to]: [...prevMessages, {content, from: username}]
+            };
         });
     };
 
-    return { messages, sendMessage };
+    return {messages, sendMessage};
 };
 
 export default useChat;
