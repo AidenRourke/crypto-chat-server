@@ -43,7 +43,7 @@ io.on("connection", socket => {
 
         console.log(`Handling message from: ${socket.userID} to: ${to}`);
 
-        socket.to(to).to(socket.userID).emit(NEW_CHAT_MESSAGE_EVENT, {
+        socket.to(to).emit(NEW_CHAT_MESSAGE_EVENT, {
             to: to,
             from: socket.userID,
             content
