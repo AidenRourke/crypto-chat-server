@@ -26,6 +26,7 @@
 }
 
 .select-conversation-button {
+    margin-bottom: 20px;
     font-size: 28px;
     font-weight: 600;
     color: black;
