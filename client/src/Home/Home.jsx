@@ -16,15 +16,6 @@ const Home = () => {
                 onChange={event => setUsername(event.target.value)}
                 className="text-input-field"
             />
-
-            <input
-                type="text"
-                placeholder="Receiver Name"
-                value={receiver}
-                onChange={event => setReceiver(event.target.value)}
-                className="text-input-field"
-            />
-
             <Link
                 to={{pathname: `/chats`, state: {username, receiver}}}
                 className="enter-room-button"

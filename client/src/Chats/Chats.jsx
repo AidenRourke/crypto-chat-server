@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import useChat from "../useChat";
 import ChatRoom from "../ChatRoom/ChatRoom";
 
@@ -26,18 +26,20 @@ const loadBlobFile = file => {
 };
 
 const Chats = props => {
-    const {username, receiver} = props.location.state;
+    const [to, setTo] = useState("")
+    const {username} = props.location.state;
 
     const {messages, sendMessage, processPreKey, downloadKeys} = useChat(username);
 
     const handleSubmit = e => {
         e.preventDefault();
 
-        const json = e.target[0].files[0];
-        const identityKey = e.target[1].files[0];
-        const preKey = e.target[2].files[0];
-        const signedKey = e.target[3].files[0];
-        const signature = e.target[4].files[0];
+        const to = e.target[0].value;
+        const json = e.target[1].files[0];
+        const identityKey = e.target[2].files[0];
+        const preKey = e.target[3].files[0];
+        const signedKey = e.target[4].files[0];
+        const signature = e.target[5].files[0];
 
         Promise.all([
             loadTextFile(json),
@@ -52,35 +54,40 @@ const Chats = props => {
             preKeyBundle.signedPreKey.publicKey = r[3];
             preKeyBundle.signedPreKey.signature = r[4];
 
-            processPreKey(preKeyBundle, receiver);
+            processPreKey(preKeyBundle, to);
         });
 
+        setTo(to);
         e.target.reset();
     };
 
     return (
         <div className="chats-container">
             <div className="conversations-container">
-                <h1>WELCOME: {username}</h1>
+                <h2 className="user-name">WELCOME: {username}</h2>
                 <button onClick={() => downloadKeys()}>Download Keys</button>
-                <h2 className="user-name">Receiver:</h2>
-                <form onSubmit={handleSubmit}>
-                    <label>JSON:</label><br/>
-                    <input type="file" name="json"/><br/>
-                    <label>Identity Key:</label><br/>
-                    <input type="file" name="idKey"/><br/>
-                    <label>Pre Key:</label><br/>
-                    <input type="file" name="preKey"/><br/>
-                    <label>Signed PreKey:</label><br/>
-                    <input type="file" name="signedKey"/><br/>
-                    <label>PreKey Signature:</label><br/>
-                    <input type="file" name="signature"/><br/>
-                    <button>Submit</button>
+                {Object.keys(messages).map(conversation => <button key={conversation}
+                                                                   onClick={() => setTo(conversation)}
+                                                                   className="select-conversation-button">{conversation}</button>)}
+                <form onSubmit={handleSubmit} className="conversations">
+                    <label>To:</label>
+                    <input type="text" name="to"/>
+                    <label>JSON:</label>
+                    <input type="file" name="json"/>
+                    <label>Identity Key:</label>
+                    <input type="file" name="idKey"/>
+                    <label>Pre Key:</label>
+                    <input type="file" name="preKey"/>
+                    <label>Signed PreKey:</label>
+                    <input type="file" name="signedKey"/>
+                    <label>PreKey Signature:</label>
+                    <input type="file" name="signature"/>
+                    <button className="start-conversation-button">Establish Session</button>
                 </form>
             </div>
             <ChatRoom
-                to={receiver}
-                conversation={messages}
+                to={to}
+                conversation={messages[to] || []}
                 sendMessage={sendMessage}
             />
         </div>

@@ -15,7 +15,7 @@ const ChatRoom = props => {
         sendMessage(to, newMessage);
         setNewMessage("");
     };
-
+    
     return (
         <div className="chat-room-container">
             <h2 className="room-name">Conversation With: {to}</h2>

@@ -8,6 +8,8 @@ const SOCKET_SERVER_URL =
     "http://Gettingstartedapp-env.eba-sm3mz4hp.us-east-2.elasticbeanstalk.com";
 // const SOCKET_SERVER_URL = "http://localhost:4000";
 
+const DEVICE_ID = 0; // Each one of a users devices has a different device ID (and their own conversation)
+
 const {util, libsignal} = window;
 const userStore = new SignalProtocolStore();
 
@@ -59,7 +61,7 @@ function generatePreKeyBundle(store, preKeyId, signedPreKeyId) {
 }
 
 const useChat = username => {
-    const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState({});
     const socketRef = useRef();
 
     useEffect(() => {
@@ -74,34 +76,37 @@ const useChat = username => {
         socketRef.current.on(
             NEW_CHAT_MESSAGE_EVENT,
             async ({to, from, content}) => {
-                const SENDER_ADDRESS = new libsignal.SignalProtocolAddress(from, 1);
+                const FROM_ADDRESS = new libsignal.SignalProtocolAddress(from, DEVICE_ID);
                 const sessionCipher = new libsignal.SessionCipher(
                     userStore,
-                    SENDER_ADDRESS
+                    FROM_ADDRESS
                 );
 
-                console.log("Message:")
-                console.log(content)
+                console.log("Message:");
+                console.log(content);
 
+                let message;
                 if (content.type === 3) {
                     const plaintext = await sessionCipher.decryptPreKeyWhisperMessage(
                         content.body,
                         "binary"
                     );
-                    const message = util.ab2str(plaintext);
-                    setMessages(messages => {
-                        return [...messages, {content: message, fromSelf: false}];
-                    });
+                    message = util.ab2str(plaintext);
                 } else {
                     const plaintext = await sessionCipher.decryptWhisperMessage(
                         content.body,
                         "binary"
                     );
-                    const message = util.ab2str(plaintext);
-                    setMessages(messages => {
-                        return [...messages, {content: message, fromSelf: false}];
-                    });
+                    message = util.ab2str(plaintext);
+
                 }
+                setMessages(messages => {
+                    const prevConversation =  messages[from] || [];
+                    return {
+                        ...messages,
+                        [from]: [...prevConversation, {content: message, fromSelf: false}]
+                    };
+                });
             }
         );
 
@@ -113,10 +118,10 @@ const useChat = username => {
     const sendMessage = (to, content) => {
         const plaintext = util.str2ab(content);
 
-        const RECEIVER_ADDRESS = new libsignal.SignalProtocolAddress(to, 1);
+        const TO_ADDRESS = new libsignal.SignalProtocolAddress(to, DEVICE_ID);
         const sessionCipher = new libsignal.SessionCipher(
             userStore,
-            RECEIVER_ADDRESS
+            TO_ADDRESS
         );
 
         sessionCipher.encrypt(plaintext).then(cipherText => {
@@ -127,11 +132,16 @@ const useChat = username => {
         });
 
         setMessages(messages => {
-            return [...messages, {content, fromSelf: true}];
+            const prevConversation =  messages[to] || [];
+            return {
+                ...messages,
+                [to]: [...prevConversation, {content, fromSelf: true}]
+            };
         });
     };
 
     const downloadKeys = async () => {
+        // PreKeyId and signedKeyId will eventually be unique identifiers
         const preKeyId = 1;
         const signedKeyId = 1;
         const preKeyBundle = await generatePreKeyBundle(
@@ -174,10 +184,10 @@ const useChat = username => {
         a.click();
     };
 
-    const processPreKey = async (preKeyBundle, receiver) => {
+    const processPreKey = async (preKeyBundle, to) => {
         console.log(preKeyBundle);
-        const RECEIVER_ADDRESS = new libsignal.SignalProtocolAddress(receiver, 1); // Device ID is to differentiate between user devices
-        const builder = new libsignal.SessionBuilder(userStore, RECEIVER_ADDRESS);
+        const TO_ADDRESS = new libsignal.SignalProtocolAddress(to, DEVICE_ID);
+        const builder = new libsignal.SessionBuilder(userStore, TO_ADDRESS);
 
         await builder.processPreKey(preKeyBundle);
     };

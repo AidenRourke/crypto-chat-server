@@ -21,21 +21,22 @@
 
 .conversations {
     flex: 1;
+    min-height: 0;
+    justify-content: flex-end;
     display: flex;
     flex-direction: column;
 }
 
 .select-conversation-button {
-    margin-bottom: 20px;
-    font-size: 28px;
-    font-weight: 600;
+    margin: 10px 0;
+    font-size: 20px;
     color: black;
     background: white;
-    padding: 24px 12px;
+    padding: 12px 6px;
     border-radius: 7px;
     border-width: 2px;
     border-style: inset;
-    border-color: -internal-light-dark(rgb(118, 118, 118), rgb(133, 133, 133));
+    border-color: #31a24c;
     border-image: initial;
 }
 
@@ -46,4 +47,5 @@
     background: #31a24c;
     padding: 24px 12px;
     border: none;
+    margin-top: 10px
 }
