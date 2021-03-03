@@ -33,7 +33,7 @@ function generatePreKeyBundle(store, preKeyId, signedPreKeyId) {
             KeyHelper.generatePreKey(preKeyId),
             KeyHelper.generateSignedPreKey(identity, signedPreKeyId),
         ]).then(function (keys) {
-            var preKey = keys[0]
+            var preKey = keys[0];
             var signedPreKey = keys[1];
 
             store.storePreKey(preKeyId, preKey.keyPair);
@@ -56,8 +56,8 @@ function generatePreKeyBundle(store, preKeyId, signedPreKeyId) {
     });
 }
 
-var ALICE_ADDRESS = new libsignal.SignalProtocolAddress("1001", 1);
-var BOB_ADDRESS = new libsignal.SignalProtocolAddress("1002", 1);
+var ALICE_ADDRESS = new libsignal.SignalProtocolAddress("alice", 1);
+var BOB_ADDRESS = new libsignal.SignalProtocolAddress("bob", 1);
 
 var aliceStore = new SignalProtocolStore();
 
@@ -87,19 +87,19 @@ Promise.all([
 
         }).then(function (plaintext) {
 
-            alert(util.ab2str(plaintext));
+            console.log(util.ab2str(plaintext))
+
+            bobSessionCipher.encrypt(originalMessage).then(function (ciphertext) {
+
+                return aliceSessionCipher.decryptWhisperMessage(ciphertext.body, 'binary');
+
+            }).then(function (plaintext) {
+
+                console.log(util.ab2str(plaintext))
+
+            });
 
         });
-
-        // bobSessionCipher.encrypt(originalMessage).then(function (ciphertext) {
-        //
-        //     return aliceSessionCipher.decryptWhisperMessage(ciphertext.body, 'binary');
-        //
-        // }).then(function (plaintext) {
-        //
-        //     alert(util.ab2str(plaintext));
-        //
-        // });
 
     });
 });
