@@ -34,7 +34,7 @@ const useChat = username => {
     const sendMessage = (to, content) => {
         socketRef.current.emit(NEW_CHAT_MESSAGE_EVENT, {
             content,
-            to
+            to,
         });
         setMessages(messages => {
             const prevMessages = messages[to] || [];
