@@ -1,10 +1,10 @@
-const app = require('express')();
+const app = require("express")();
 const server = require("http").createServer(app);
 const PORT = process.env.PORT || 4000;
 const io = require("socket.io")(server, {
     cors: {
-        origin: "*",
-    },
+        origin: "*"
+    }
 });
 
 const NEW_CHAT_MESSAGE_EVENT = "newChatMessage";
@@ -22,13 +22,13 @@ const getUsers = () => {
     const users = [];
     for (let [, socket] of io.of("/").sockets) {
         users.push({
-            userID: socket.userID,
+            userID: socket.userID
         });
     }
     return users;
 };
 
-io.on("connection", (socket) => {
+io.on("connection", socket => {
     const users = getUsers();
     console.log(`Connecting: ${socket.userID}`);
     console.log("User list:");
@@ -41,19 +41,21 @@ io.on("connection", (socket) => {
         console.log("User list:");
         console.log(users);
 
-        console.log(`Handling message from: ${socket.userID} to: ${to}`)
+        console.log(`Handling message from: ${socket.userID} to: ${to}`);
 
         io.to(to).emit(NEW_CHAT_MESSAGE_EVENT, {
+            to: to,
             from: socket.userID,
-            content,
+            content
         });
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
         const users = getUsers();
         console.log(`Disconnecting: ${socket.userID}`);
         console.log("User list:");
         console.log(users);
+
     });
 });
 

@@ -16,12 +16,13 @@ const useChat = username => {
             }
         });
 
-        socketRef.current.on(NEW_CHAT_MESSAGE_EVENT, ({from, content}) => {
+        socketRef.current.on(NEW_CHAT_MESSAGE_EVENT, ({to, from, content}) => {
             setMessages(messages => {
+                const fromSelf = username === from;
                 const prevMessages = messages[from] || [];
                 return {
                     ...messages,
-                    [from]: [...prevMessages, {content, from}]
+                    [from]: [...prevMessages, {content, fromSelf}]
                 };
             });
         });
@@ -40,7 +41,7 @@ const useChat = username => {
             const prevMessages = messages[to] || [];
             return {
                 ...messages,
-                [to]: [...prevMessages, {content, from: username}]
+                [to]: [...prevMessages, {content, fromSelf: true}]
             };
         });
     };

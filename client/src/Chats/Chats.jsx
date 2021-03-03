@@ -27,7 +27,7 @@ const Chats = props => {
                 <h2>Conversation List</h2>
                 <div className="conversations">
                     {Object.keys(messages).map(receiver => (
-                        <button
+                        <button key={receiver}
                             className="select-conversation-button"
                             onClick={() => setValue(receiver)}
                         >
@@ -44,7 +44,6 @@ const Chats = props => {
             </div>
             <ChatRoom
                 to={to}
-                username={username}
                 conversation={messages[to] || []}
                 sendMessage={sendMessage}
             />

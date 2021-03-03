@@ -5,7 +5,7 @@ import "./ChatRoom.css";
 const ChatRoom = props => {
     const [newMessage, setNewMessage] = React.useState("");
 
-    const {to, username, conversation, sendMessage} = props;
+    const {to, conversation, sendMessage} = props;
 
     const handleNewMessageChange = event => {
         setNewMessage(event.target.value);
@@ -22,18 +22,17 @@ const ChatRoom = props => {
             <div className="messages-container">
                 <ol className="messages-list">
                     {conversation.map((message, i) => {
-                        const fromSelf = message.from === username;
                         return (
                             <div key={i}>
-                                {!fromSelf && (
+                                {!message.fromSelf && (
                                     <label className={`message-item received-name`}>
-                                        {message.from}
+                                        {to}
                                     </label>
                                 )}
 
                                 <li
                                     className={`message-item ${
-                                        fromSelf ? "my-message" : "received-message"
+                                        message.fromSelf ? "my-message" : "received-message"
                                         }`}
                                 >
                                     {message.content}
