@@ -10,46 +10,48 @@ const io = require("socket.io")(server, {
 const NEW_CHAT_MESSAGE_EVENT = "newChatMessage";
 
 io.use((socket, next) => {
-    const username = socket.handshake.auth.username;
-    if (!username) {
+    const userID = socket.handshake.auth.userID;
+    if (!userID) {
         return next(new Error("invalid username"));
     }
-    socket.username = username;
+    socket.userID = userID;
     next();
 });
 
 const getUsers = () => {
     const users = [];
-    for (let [id, socket] of io.of("/").sockets) {
+    for (let [, socket] of io.of("/").sockets) {
         users.push({
-            userID: id,
-            username: socket.username,
+            userID: socket.userID,
         });
     }
     return users;
 };
 
 io.on("connection", (socket) => {
+    const users = getUsers();
+    console.log(`Connecting: ${socket.userID}`);
+    console.log("User list:");
+    console.log(users);
+    socket.join(socket.userID);
+
     socket.on(NEW_CHAT_MESSAGE_EVENT, ({to, content}) => {
         const users = getUsers();
 
         console.log("User list:");
         console.log(users);
 
-        const receiver = users.find(user => user.username === to);
-        const sender = users.find(user => user.userID === socket.id);
+        console.log(`Handling message from: ${socket.userID} to: ${to}`)
 
-        console.log(`Handling message from: ${sender.username} to: ${receiver.username}`)
-
-        io.to(receiver.userID).emit(NEW_CHAT_MESSAGE_EVENT, {
-            from: sender.username,
+        io.to(to).emit(NEW_CHAT_MESSAGE_EVENT, {
+            from: socket.userID,
             content,
         });
     });
 
     socket.on("disconnect", () => {
         const users = getUsers();
-        console.log(`Disconnecting: ${socket.id}`);
+        console.log(`Disconnecting: ${socket.userID}`);
         console.log("User list:");
         console.log(users);
     });

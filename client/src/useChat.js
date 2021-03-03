@@ -12,7 +12,7 @@ const useChat = username => {
     useEffect(() => {
         socketRef.current = io(SOCKET_SERVER_URL, {
             auth: {
-                username // Replace this with token eventually
+                userID: username // Replace this with token eventually
             }
         });
 
