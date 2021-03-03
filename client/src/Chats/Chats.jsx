@@ -1,150 +1,86 @@
-import React, {useState} from "react";
+import React from "react";
 import useChat from "../useChat";
 import ChatRoom from "../ChatRoom/ChatRoom";
 
-import SignalProtocolStore from "./store"
 
 import "./Chats.css";
 
-const {libsignal} = window;
-const {util} = window;
+const loadTextFile = file => {
+    return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            resolve(e.target.result)
+        };
+        reader.readAsText(file)
+    })
+};
 
-const KeyHelper = libsignal.KeyHelper;
-
-function generateIdentity(store) {
-    return Promise.all([
-        KeyHelper.generateIdentityKeyPair(),
-        KeyHelper.generateRegistrationId(),
-    ]).then(function (result) {
-        store.put('identityKey', result[0]);
-        store.put('registrationId', result[1]);
-    });
-}
-
-function generatePreKeyBundle(store, preKeyId, signedPreKeyId) {
-    return Promise.all([
-        store.getIdentityKeyPair(),
-        store.getLocalRegistrationId()
-    ]).then(function (result) {
-        var identity = result[0];
-        var registrationId = result[1];
-
-        return Promise.all([
-            KeyHelper.generatePreKey(preKeyId),
-            KeyHelper.generateSignedPreKey(identity, signedPreKeyId),
-        ]).then(function (keys) {
-            var preKey = keys[0];
-            var signedPreKey = keys[1];
-
-            store.storePreKey(preKeyId, preKey.keyPair);
-            store.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair);
-
-            return {
-                identityKey: identity.pubKey,
-                registrationId: registrationId,
-                preKey: {
-                    keyId: preKeyId,
-                    publicKey: preKey.keyPair.pubKey
-                },
-                signedPreKey: {
-                    keyId: signedPreKeyId,
-                    publicKey: signedPreKey.keyPair.pubKey,
-                    signature: signedPreKey.signature
-                }
-            };
-        });
-    });
-}
-
-var ALICE_ADDRESS = new libsignal.SignalProtocolAddress("alice", 1);
-var BOB_ADDRESS = new libsignal.SignalProtocolAddress("bob", 1);
-
-var aliceStore = new SignalProtocolStore();
-
-var bobStore = new SignalProtocolStore();
-var bobPreKeyId = 1337;
-var bobSignedKeyId = 1;
-
-var Curve = libsignal.Curve;
-
-Promise.all([
-    generateIdentity(aliceStore),
-    generateIdentity(bobStore),
-]).then(function () {
-    return generatePreKeyBundle(bobStore, bobPreKeyId, bobSignedKeyId);
-}).then(function (preKeyBundle) {
-    var builder = new libsignal.SessionBuilder(aliceStore, BOB_ADDRESS);
-    return builder.processPreKey(preKeyBundle).then(function () {
-
-        var originalMessage = util.str2ab("my message ......");
-        var aliceSessionCipher = new libsignal.SessionCipher(aliceStore, BOB_ADDRESS);
-        var bobSessionCipher = new libsignal.SessionCipher(bobStore, ALICE_ADDRESS);
-
-        aliceSessionCipher.encrypt(originalMessage).then(function (ciphertext) {
-
-            // check for ciphertext.type to be 3 which includes the PREKEY_BUNDLE
-            return bobSessionCipher.decryptPreKeyWhisperMessage(ciphertext.body, 'binary');
-
-        }).then(function (plaintext) {
-
-            console.log(util.ab2str(plaintext))
-
-            bobSessionCipher.encrypt(originalMessage).then(function (ciphertext) {
-
-                return aliceSessionCipher.decryptWhisperMessage(ciphertext.body, 'binary');
-
-            }).then(function (plaintext) {
-
-                console.log(util.ab2str(plaintext))
-
-            });
-
-        });
-
-    });
-});
+const loadBlobFile = file => {
+    return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            resolve(e.target.result)
+        };
+        reader.readAsArrayBuffer(file)
+    })
+};
 
 const Chats = props => {
-    const [value, setValue] = useState("");
-    const [to, setTo] = useState("");
+    const {username, receiver} = props.location.state;
 
-    const {username} = props.location.state;
+    const {messages, sendMessage, processPreKey, downloadKeys} = useChat(username);
 
-    const {messages, sendMessage} = useChat(username);
+    const handleSubmit = e => {
+        e.preventDefault();
+
+        const json = e.target[0].files[0];
+        const identityKey = e.target[1].files[0];
+        const preKey = e.target[2].files[0];
+        const signedKey = e.target[3].files[0];
+        const signature = e.target[4].files[0];
+
+        Promise.all([
+            loadTextFile(json),
+            loadBlobFile(identityKey),
+            loadBlobFile(preKey),
+            loadBlobFile(signedKey),
+            loadBlobFile(signature)
+        ]).then(async (r) => {
+            const preKeyBundle = JSON.parse(r[0]);
+            preKeyBundle.identityKey = r[1];
+            preKeyBundle.preKey.publicKey = r[2];
+            preKeyBundle.signedPreKey.publicKey = r[3];
+            preKeyBundle.signedPreKey.signature = r[4];
+
+            processPreKey(preKeyBundle, receiver);
+        });
+
+        e.target.reset();
+    };
 
     return (
         <div className="chats-container">
             <div className="conversations-container">
                 <h1>WELCOME: {username}</h1>
+                <button onClick={() => downloadKeys()}>Download Keys</button>
                 <h2 className="user-name">Receiver:</h2>
-                <input
-                    type="text"
-                    placeholder="Receiver Name"
-                    value={value}
-                    onChange={event => setValue(event.target.value)}
-                    className="text-input-field"
-                />
-                <h2>Conversation List</h2>
-                <div className="conversations">
-                    {Object.keys(messages).map(receiver => (
-                        <button key={receiver}
-                                className="select-conversation-button"
-                                onClick={() => setValue(receiver)}
-                        >
-                            {receiver}
-                        </button>
-                    ))}
-                </div>
-                <button
-                    className="start-conversation-button"
-                    onClick={() => setTo(value)}
-                >
-                    Enter Conversation
-                </button>
+                <form onSubmit={handleSubmit}>
+                    <label>JSON:</label><br/>
+                    <input type="file" name="json"/><br/>
+                    <label>Identity Key:</label><br/>
+                    <input type="file" name="idKey"/><br/>
+                    <label>Pre Key:</label><br/>
+                    <input type="file" name="preKey"/><br/>
+                    <label>Signed PreKey:</label><br/>
+                    <input type="file" name="signedKey"/><br/>
+                    <label>PreKey Signature:</label><br/>
+                    <input type="file" name="signature"/><br/>
+                    <button>Submit</button>
+                </form>
             </div>
             <ChatRoom
-                to={to}
-                conversation={messages[to] || []}
+                to={receiver}
+                conversation={messages}
                 sendMessage={sendMessage}
             />
         </div>

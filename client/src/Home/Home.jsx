@@ -5,6 +5,7 @@ import "./Home.css";
 
 const Home = () => {
     const [username, setUsername] = useState("");
+    const [receiver,  setReceiver] = useState("")
 
     return (
         <div className="home-container">
@@ -16,8 +17,16 @@ const Home = () => {
                 className="text-input-field"
             />
 
+            <input
+                type="text"
+                placeholder="Receiver Name"
+                value={receiver}
+                onChange={event => setReceiver(event.target.value)}
+                className="text-input-field"
+            />
+
             <Link
-                to={{pathname: `/chats`, state: {username}}}
+                to={{pathname: `/chats`, state: {username, receiver}}}
                 className="enter-room-button"
             >
                 View Chats
