@@ -47,11 +47,6 @@ io.on("connection", (socket) => {
         });
     });
 
-    /*
-    * Group messaging
-    * Create room on new group event
-    * Adding users -
-    * */
     socket.on("disconnect", () => {
         const users = getUsers();
         console.log(`Disconnecting: ${socket.id}`);

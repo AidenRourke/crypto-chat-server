@@ -1,19 +1,19 @@
 import React from "react";
-import {BrowserRouter as Router, Switch, Route} from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import "./index.css";
 import Home from "./Home/Home";
-import ChatRoom from "./ChatRoom/ChatRoom";
+import Chats from "./Chats/Chats";
 
 function App() {
-    return (
-        <Router>
-            <Switch>
-                <Route exact path="/" component={Home}/>
-                <Route exact path="/:to" component={ChatRoom}/>
-            </Switch>
-        </Router>
-    );
+  return (
+    <Router>
+      <Switch>
+        <Route exact path="/" component={Home} />
+        <Route exact path="/chats" component={Chats} />
+      </Switch>
+    </Router>
+  );
 }
 
 export default App;

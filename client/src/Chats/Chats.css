@@ -1,0 +1,48 @@
+.chats-container {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    padding: 20px;
+}
+
+.conversations-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-right: 20px;
+}
+
+.user-name {
+    margin-top: 0;
+}
+
+.conversations {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.select-conversation-button {
+    font-size: 28px;
+    font-weight: 600;
+    color: black;
+    background: white;
+    padding: 24px 12px;
+    border-radius: 7px;
+    border-width: 2px;
+    border-style: inset;
+    border-color: -internal-light-dark(rgb(118, 118, 118), rgb(133, 133, 133));
+    border-image: initial;
+}
+
+.start-conversation-button {
+    font-size: 28px;
+    font-weight: 600;
+    color: white;
+    background: #31a24c;
+    padding: 24px 12px;
+    border: none;
+}
