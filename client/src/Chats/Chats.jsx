@@ -1,7 +1,8 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import useChat from "../useChat";
 import ChatRoom from "../ChatRoom/ChatRoom";
 import {decode} from "base64-arraybuffer"
+import QRCode from "react-qr-code";
 
 
 import "./Chats.css";
@@ -17,10 +18,19 @@ const loadTextFile = file => {
 };
 
 const Chats = props => {
-    const [to, setTo] = useState("")
+    const [to, setTo] = useState("");
+    const [preKeyString, setPreKeyString] = useState();
     const {username} = props.location.state;
 
-    const {messages, sendMessage, processPreKey, downloadKeys} = useChat(username);
+    const {messages, sendMessage, processPreKey, getPreKeysString} = useChat(username);
+
+    useEffect(() => {
+        const getPreKeyString = async () => {
+            const preKeyString = await getPreKeysString();
+            setPreKeyString(preKeyString)
+        }
+        getPreKeyString()
+    }, [])
 
     const handleSubmit = e => {
         e.preventDefault();
@@ -36,17 +46,29 @@ const Chats = props => {
             preKeyBundle.signedPreKey.signature = decode(preKeyBundle.signedPreKey.signature);
 
             processPreKey(preKeyBundle, to);
-        })
+        });
 
         setTo(to);
         e.target.reset();
+    };
+
+    const downloadKeys = async () => {
+        const a = document.createElement("a");
+        const blob = new Blob([preKeyString]);
+        const url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = "preKeyBundle";
+        a.click();
     };
 
     return (
         <div className="chats-container">
             <div className="conversations-container">
                 <h2 className="user-name">WELCOME: {username}</h2>
-                <button onClick={() => downloadKeys()}>Download Keys</button>
+                {preKeyString && <div className="pre-keys">
+                    <QRCode size={100} value={preKeyString}/>
+                    <button onClick={() => downloadKeys()}>Download Keys</button>
+                </div>}
                 {Object.keys(messages).map(conversation => <button key={conversation}
                                                                    onClick={() => setTo(conversation)}
                                                                    className="select-conversation-button">{conversation}</button>)}

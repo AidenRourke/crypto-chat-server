@@ -66,8 +66,6 @@ const useChat = username => {
     const socketRef = useRef();
 
     useEffect(() => {
-        generateIdentity(userStore);
-
         socketRef.current = io(SOCKET_SERVER_URL, {
             auth: {
                 userID: username // Replace this with token eventually
@@ -141,8 +139,9 @@ const useChat = username => {
         });
     };
 
-    const downloadKeys = async () => {
+    const getPreKeysString = async () => {
         // PreKeyId and signedKeyId will eventually be unique identifiers
+        await generateIdentity(userStore);
         const preKeyId = 1;
         const signedKeyId = 1;
         const preKeyBundle = await generatePreKeyBundle(
@@ -151,20 +150,14 @@ const useChat = username => {
             signedKeyId
         );
 
-        const a = document.createElement("a");
-
+        console.log(preKeyBundle)
 
         preKeyBundle.identityKey = encode(preKeyBundle.identityKey);
         preKeyBundle.preKey.publicKey = encode(preKeyBundle.preKey.publicKey);
         preKeyBundle.signedPreKey.publicKey = encode(preKeyBundle.signedPreKey.publicKey);
         preKeyBundle.signedPreKey.signature = encode(preKeyBundle.signedPreKey.signature);
 
-        const blob = new Blob([JSON.stringify(preKeyBundle)]);
-        const url = URL.createObjectURL(blob);
-        a.href = url;
-        a.download = "preKeyBundle";
-        a.click();
-
+        return JSON.stringify(preKeyBundle)
     };
 
     const processPreKey = async (preKeyBundle, to) => {
@@ -175,7 +168,7 @@ const useChat = username => {
         await builder.processPreKey(preKeyBundle);
     };
 
-    return {messages, sendMessage, downloadKeys, processPreKey};
+    return {messages, sendMessage, getPreKeysString, processPreKey};
 };
 
 export default useChat;

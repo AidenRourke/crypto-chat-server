@@ -19,6 +19,12 @@
     margin-top: 0;
 }
 
+.pre-keys {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
 .conversations {
     flex: 1;
     min-height: 0;
