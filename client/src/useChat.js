@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import io from "socket.io-client";
+import {encode} from "base64-arraybuffer"
 
 import SignalProtocolStore from "./store";
 
@@ -101,7 +102,7 @@ const useChat = username => {
 
                 }
                 setMessages(messages => {
-                    const prevConversation =  messages[from] || [];
+                    const prevConversation = messages[from] || [];
                     return {
                         ...messages,
                         [from]: [...prevConversation, {content: message, fromSelf: false}]
@@ -132,7 +133,7 @@ const useChat = username => {
         });
 
         setMessages(messages => {
-            const prevConversation =  messages[to] || [];
+            const prevConversation = messages[to] || [];
             return {
                 ...messages,
                 [to]: [...prevConversation, {content, fromSelf: true}]
@@ -149,39 +150,21 @@ const useChat = username => {
             preKeyId,
             signedKeyId
         );
-        console.log(preKeyBundle);
 
         const a = document.createElement("a");
 
-        let blob = new Blob([preKeyBundle.identityKey]);
-        let url = URL.createObjectURL(blob);
+
+        preKeyBundle.identityKey = encode(preKeyBundle.identityKey);
+        preKeyBundle.preKey.publicKey = encode(preKeyBundle.preKey.publicKey);
+        preKeyBundle.signedPreKey.publicKey = encode(preKeyBundle.signedPreKey.publicKey);
+        preKeyBundle.signedPreKey.signature = encode(preKeyBundle.signedPreKey.signature);
+
+        const blob = new Blob([JSON.stringify(preKeyBundle)]);
+        const url = URL.createObjectURL(blob);
         a.href = url;
-        a.download = "identityKey";
+        a.download = "preKeyBundle";
         a.click();
 
-        blob = new Blob([preKeyBundle.preKey.publicKey]);
-        url = URL.createObjectURL(blob);
-        a.href = url;
-        a.download = "preKey";
-        a.click();
-
-        blob = new Blob([preKeyBundle.signedPreKey.publicKey]);
-        url = URL.createObjectURL(blob);
-        a.href = url;
-        a.download = "signedPreKey";
-        a.click();
-
-        blob = new Blob([preKeyBundle.signedPreKey.signature]);
-        url = URL.createObjectURL(blob);
-        a.href = url;
-        a.download = "signature";
-        a.click();
-
-        blob = new Blob([JSON.stringify(preKeyBundle)]);
-        url = URL.createObjectURL(blob);
-        a.href = url;
-        a.download = "json";
-        a.click();
     };
 
     const processPreKey = async (preKeyBundle, to) => {

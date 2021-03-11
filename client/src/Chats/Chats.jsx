@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import useChat from "../useChat";
 import ChatRoom from "../ChatRoom/ChatRoom";
+import {decode} from "base64-arraybuffer"
 
 
 import "./Chats.css";
@@ -15,16 +16,6 @@ const loadTextFile = file => {
     })
 };
 
-const loadBlobFile = file => {
-    return new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            resolve(e.target.result)
-        };
-        reader.readAsArrayBuffer(file)
-    })
-};
-
 const Chats = props => {
     const [to, setTo] = useState("")
     const {username} = props.location.state;
@@ -35,27 +26,17 @@ const Chats = props => {
         e.preventDefault();
 
         const to = e.target[0].value;
-        const json = e.target[1].files[0];
-        const identityKey = e.target[2].files[0];
-        const preKey = e.target[3].files[0];
-        const signedKey = e.target[4].files[0];
-        const signature = e.target[5].files[0];
+        const preKeyBundle = e.target[1].files[0];
 
-        Promise.all([
-            loadTextFile(json),
-            loadBlobFile(identityKey),
-            loadBlobFile(preKey),
-            loadBlobFile(signedKey),
-            loadBlobFile(signature)
-        ]).then(async (r) => {
-            const preKeyBundle = JSON.parse(r[0]);
-            preKeyBundle.identityKey = r[1];
-            preKeyBundle.preKey.publicKey = r[2];
-            preKeyBundle.signedPreKey.publicKey = r[3];
-            preKeyBundle.signedPreKey.signature = r[4];
+        loadTextFile(preKeyBundle).then((r) => {
+            const preKeyBundle = JSON.parse(r);
+            preKeyBundle.identityKey = decode(preKeyBundle.identityKey);
+            preKeyBundle.preKey.publicKey = decode(preKeyBundle.preKey.publicKey);
+            preKeyBundle.signedPreKey.publicKey = decode(preKeyBundle.signedPreKey.publicKey);
+            preKeyBundle.signedPreKey.signature = decode(preKeyBundle.signedPreKey.signature);
 
             processPreKey(preKeyBundle, to);
-        });
+        })
 
         setTo(to);
         e.target.reset();
@@ -72,16 +53,8 @@ const Chats = props => {
                 <form onSubmit={handleSubmit} className="conversations">
                     <label>To:</label>
                     <input type="text" name="to"/>
-                    <label>JSON:</label>
-                    <input type="file" name="json"/>
-                    <label>Identity Key:</label>
-                    <input type="file" name="idKey"/>
-                    <label>Pre Key:</label>
+                    <label>Pre Key Bundle:</label>
                     <input type="file" name="preKey"/>
-                    <label>Signed PreKey:</label>
-                    <input type="file" name="signedKey"/>
-                    <label>PreKey Signature:</label>
-                    <input type="file" name="signature"/>
                     <button className="start-conversation-button">Establish Session</button>
                 </form>
             </div>
