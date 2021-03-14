@@ -6,6 +6,7 @@ const io = require("socket.io")(server, {
         origin: "*"
     }
 });
+const messageDao = require("./MessagesDAO");
 
 const NEW_CHAT_MESSAGE_EVENT = "newChatMessage";
 
@@ -40,14 +41,21 @@ io.on("connection", socket => {
 
         console.log("User list:");
         console.log(users);
+        currentTimestamp = Date.now();
 
-        console.log(`Handling message from: ${socket.userID} to: ${to}`);
-
-        socket.to(to).emit(NEW_CHAT_MESSAGE_EVENT, {
-            to: to,
-            from: socket.userID,
-            content
-        });
+        console.log(`Handling message from: ${socket.userID} --> ${to}`);
+        if (users.some(user => user.userID === to)) {
+            socket.to(to).emit(NEW_CHAT_MESSAGE_EVENT, {
+                to: to,
+                from: socket.userID,
+                content
+            });
+        } else {
+            // Store messages
+            console.log("user must be disconnected");
+            // Will need to be changed to use the real user id, after the login page is made
+            messageDao.putMessage(socket.userID, currentTimestamp, to, content)
+        }
     });
 
     socket.on("disconnect", async () => {
@@ -55,7 +63,6 @@ io.on("connection", socket => {
         console.log(`Disconnecting: ${socket.userID}`);
         console.log("User list:");
         console.log(users);
-
     });
 });
 
