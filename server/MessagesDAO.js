@@ -1,13 +1,10 @@
 var AWS = require("aws-sdk");
 
 AWS.config.update({
-    region: "us-east-2",
-    endpoint: "https://dynamodb.us-east-2.amazonaws.com",
+  endpoint: "https://dynamodb.us-east-2.amazonaws.com",
+  region: "us-east-2",
 });
-
-var docClient = new AWS.DynamoDB.DocumentClient();
-
-console.log(process.env.AWS_PROFILE)
+const TABLE = "messages";
 
 AWS.config.getCredentials(function (err) {
     if (err) console.log(err.stack);
@@ -18,24 +15,24 @@ AWS.config.getCredentials(function (err) {
     }
 });
 
-async function putMessage(userId, timestamp, receiverId, message) {
-    var TABLE = "messages";
-    var params = {
-        TableName: TABLE,
-        Item: {
-            "user_id": userId,
-            "timestamp": `${timestamp}`,
-            "receiver_id": receiverId,
-            "message": message
-        }
-    };
-    docClient.put(params, function (err, data) {
-        if (err) {
-            console.error("Unable to add item. Error JSON:", JSON.stringify(err));
-        } else {
-            console.log("Added item:", JSON.stringify(data));
-        }
-    });
+async function putMessage(receiverId, timestamp, senderId, message) {
+  var client = new AWS.DynamoDB.DocumentClient();
+  var params = {
+      TableName: TABLE,
+      Item: {
+          "receiver_id": receiverId,
+          "timestamp": timestamp,
+          "sender_id": senderId,
+          "message": message
+      }
+  };
+  client.put(params, function(err, data) {
+      if (err) {
+          console.error("Unable to add item for the following reason: ", JSON.stringify(err));
+      } else {
+          console.log("Added item:", JSON.stringify(data));
+      }
+  });
 }
 
 module.exports = {

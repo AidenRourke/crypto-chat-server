@@ -55,7 +55,7 @@ io.on("connection", socket => {
             // Store messages
             console.log("user must be disconnected");
             // Will need to be changed to use the real user id, after the login page is made
-            messageDao.putMessage(socket.userID, currentTimestamp, to, content)
+            messageDao.putMessage(to, currentTimestamp, socket.userID, content.body)
         }
     });
 
