@@ -30,11 +30,29 @@ async function putMessage(receiverId, timestamp, senderId, message) {
       if (err) {
           console.error("Unable to add item for the following reason: ", JSON.stringify(err));
       } else {
-          console.log("Added item:", JSON.stringify(data));
+          console.log("Added item: ", JSON.stringify(data));
       }
   });
 }
 
+async function getMessages(receiverId) {
+    var client = new AWS.DynamoDB.DocumentClient();
+    var params = {
+        TableName : TABLE,
+        KeyConditionExpression: "#receiver = :value",
+        ExpressionAttributeNames:{
+            "#receiver": "receiver_id"
+        },
+        ExpressionAttributeValues: {
+            ":value": receiverId
+        }
+    };
+    
+    var data = await client.query(params).promise()
+    return data.Items
+}
+
 module.exports = {
-    putMessage
+    putMessage,
+    getMessages
 };

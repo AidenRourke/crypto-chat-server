@@ -30,12 +30,27 @@ const getUsers = () => {
     return users;
 };
 
-io.on("connection", socket => {
+io.on("connection", async socket => {
     const users = getUsers();
     console.log(`Connecting: ${socket.userID}`);
     console.log("User list:");
     console.log(users);
     socket.join(socket.userID);
+
+    // Query for missed messages
+    // KEEP COMMENTED WHILE TESTING
+    // We don't want to waste query calls unless testing is needed
+
+    // missedMessages = await messageDao.getMessages(socket.userID);
+    // if (missedMessages) {
+    //     missedMessages.forEach(data => {
+    //         socket.to(socket.userID).emit(NEW_CHAT_MESSAGE_EVENT, {
+    //             to: socket.userID,
+    //             from: data.sender_id,
+    //             content: data.message
+    //         });
+    //     })
+    // }
 
     socket.on(NEW_CHAT_MESSAGE_EVENT, ({to, content}) => {
         const users = getUsers();

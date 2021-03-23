@@ -22,7 +22,7 @@ const Chats = props => {
     const [preKeyString, setPreKeyString] = useState();
     const {username} = props.location.state;
 
-    const {messages, sendMessage, processPreKey, getPreKeysString} = useChat(username);
+    const {messages, sendMessage, processPreKey, getPreKeysString, disconnectFromSocket} = useChat(username);
 
     useEffect(() => {
         const getPreKeyString = async () => {
@@ -84,6 +84,7 @@ const Chats = props => {
                 to={to}
                 conversation={messages[to] || []}
                 sendMessage={sendMessage}
+                disconnect={disconnectFromSocket}
             />
         </div>
     );

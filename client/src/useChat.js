@@ -5,8 +5,7 @@ import {encode} from "base64-arraybuffer"
 import SignalProtocolStore from "./store";
 
 const NEW_CHAT_MESSAGE_EVENT = "newChatMessage";
-const SOCKET_SERVER_URL =
-    "http://Gettingstartedapp-env.eba-sm3mz4hp.us-east-2.elasticbeanstalk.com";
+const SOCKET_SERVER_URL = "http://Gettingstartedapp-env.eba-sm3mz4hp.us-east-2.elasticbeanstalk.com";
 // const SOCKET_SERVER_URL = "http://localhost:4000";
 
 const DEVICE_ID = 0; // Each one of a users devices has a different device ID (and their own conversation)
@@ -168,7 +167,12 @@ const useChat = username => {
         await builder.processPreKey(preKeyBundle);
     };
 
-    return {messages, sendMessage, getPreKeysString, processPreKey};
+    const disconnectFromSocket = () => {
+        console.log("Socket: " + socketRef.current.id + " has been disconnected.")
+        socketRef.current.disconnect()
+    }
+
+    return {messages, sendMessage, getPreKeysString, processPreKey, disconnectFromSocket};
 };
 
 export default useChat;

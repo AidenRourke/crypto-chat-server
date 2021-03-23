@@ -5,7 +5,7 @@ import "./ChatRoom.css";
 const ChatRoom = props => {
     const [newMessage, setNewMessage] = React.useState("");
 
-    const {to, conversation, sendMessage} = props;
+    const {to, conversation, sendMessage, disconnect} = props;
 
     const handleNewMessageChange = event => {
         setNewMessage(event.target.value);
@@ -14,6 +14,9 @@ const ChatRoom = props => {
     const handleSendMessage = () => {
         sendMessage(to, newMessage);
         setNewMessage("");
+    };
+    const handleSocketDisconnect = () => {
+        disconnect()
     };
 
     return (
@@ -50,6 +53,9 @@ const ChatRoom = props => {
             />
             <button onClick={handleSendMessage} className="send-message-button" disabled={!to}>
                 Send
+            </button>
+            <button onClick={handleSocketDisconnect} className="send-message-button">
+                Disconnect Socket
             </button>
         </div>
     );
