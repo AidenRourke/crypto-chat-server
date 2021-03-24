@@ -52,7 +52,30 @@ async function getMessages(receiverId) {
     return data.Items
 }
 
+async function deleteMessages(messages) {
+    var client = new AWS.DynamoDB.DocumentClient();
+
+    messages.forEach(message => {
+        var params = {
+            TableName: TABLE,
+            Key:{
+                "receiver_id": message.receiver_id,
+                "timestamp": message.timestamp
+            },
+        };
+    
+        client.delete(params, function(err, data) {
+            if (err) {
+                console.error("Unable to delete item. Error JSON:", JSON.stringify(err, null, 2));
+            } else {
+                console.log("Item deleted:", JSON.stringify(data, null, 2));
+            }
+        });    
+    })
+}
+
 module.exports = {
     putMessage,
-    getMessages
+    getMessages,
+    deleteMessages
 };

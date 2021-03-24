@@ -168,9 +168,9 @@ const useChat = username => {
     };
 
     const disconnectFromSocket = () => {
-        console.log("Socket: " + socketRef.current.id + " has been disconnected.")
-        socketRef.current.disconnect()
-    }
+        console.log("Socket: " + socketRef.current.id + " has been disconnected.");
+        socketRef.current.disconnect();
+    };
 
     return {messages, sendMessage, getPreKeysString, processPreKey, disconnectFromSocket};
 };

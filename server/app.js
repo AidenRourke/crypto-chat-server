@@ -1,5 +1,6 @@
 require('dotenv').config();
-const app = require("express")();
+const express = require("express");
+const app = express();
 const server = require("http").createServer(app);
 const PORT = process.env.PORT || 4000;
 const io = require("socket.io")(server, {
@@ -8,7 +9,7 @@ const io = require("socket.io")(server, {
     }
 });
 const messageDao = require("./MessagesDAO");
-
+app.use(express.json());
 const NEW_CHAT_MESSAGE_EVENT = "newChatMessage";
 
 io.use((socket, next) => {
@@ -30,27 +31,28 @@ const getUsers = () => {
     return users;
 };
 
+// The request requires a user_id parameter to work
+app.post("/query-messages", async (req, res) => {
+    const body = req.body;
+    if (body && body.user_id) {
+        missedMessages = await messageDao.getMessages(body.user_id);
+        messageDao.deleteMessages(missedMessages)
+        res.status(200).json({
+            messages: missedMessages
+        });
+    } else {
+        return res.status(400).json({
+            error: "Missing user ID."
+        })
+    }
+});
+
 io.on("connection", async socket => {
     const users = getUsers();
     console.log(`Connecting: ${socket.userID}`);
     console.log("User list:");
     console.log(users);
     socket.join(socket.userID);
-
-    // Query for missed messages
-    // KEEP COMMENTED WHILE TESTING
-    // We don't want to waste query calls unless testing is needed
-
-    // missedMessages = await messageDao.getMessages(socket.userID);
-    // if (missedMessages) {
-    //     missedMessages.forEach(data => {
-    //         socket.to(socket.userID).emit(NEW_CHAT_MESSAGE_EVENT, {
-    //             to: socket.userID,
-    //             from: data.sender_id,
-    //             content: data.message
-    //         });
-    //     })
-    // }
 
     socket.on(NEW_CHAT_MESSAGE_EVENT, ({to, content}) => {
         const users = getUsers();
