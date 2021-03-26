@@ -1,5 +1,4 @@
-const {libsignal} = window;
-const {util} = window;
+import {encode, decode} from "base64-arraybuffer"
 
 function SignalProtocolStore() {
     this.store = {};
@@ -48,7 +47,7 @@ SignalProtocolStore.prototype = {
         if (trusted === undefined) {
             return Promise.resolve(true);
         }
-        return Promise.resolve(util.toString(identityKey) === util.toString(trusted));
+        return Promise.resolve(decode(identityKey) === decode(trusted));
     },
     loadIdentityKey: function(identifier) {
         if (identifier === null || identifier === undefined)
@@ -59,12 +58,15 @@ SignalProtocolStore.prototype = {
         if (identifier === null || identifier === undefined)
             throw new Error("Tried to put identity key for undefined/null key");
 
-        var address = new libsignal.SignalProtocolAddress.fromString(identifier);
+        if (typeof identifier !== 'string' || !identifier.match(/.*\.\d+/)) {
+            throw new Error('Invalid SignalProtocolAddress string');
+        }
+        var [name, _] = identifier.split('.');
 
-        var existing = this.get('identityKey' + address.getName());
-        this.put('identityKey' + address.getName(), identityKey)
+        var existing = this.get('identityKey' + name);
+        this.put('identityKey' + name, identityKey)
 
-        if (existing && util.toString(identityKey) !== util.toString(existing)) {
+        if (existing && decode(identityKey) !== decode(existing)) {
             return Promise.resolve(true);
         } else {
             return Promise.resolve(false);

@@ -149,7 +149,7 @@ const useChat = username => {
             signedKeyId
         );
 
-        console.log(preKeyBundle)
+        console.log(preKeyBundle);
 
         preKeyBundle.identityKey = encode(preKeyBundle.identityKey);
         preKeyBundle.preKey.publicKey = encode(preKeyBundle.preKey.publicKey);

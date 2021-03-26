@@ -1,6 +1,5 @@
 require('dotenv').config();
-const express = require("express");
-const app = express();
+const app = require("express")();
 const server = require("http").createServer(app);
 const PORT = process.env.PORT || 4000;
 const io = require("socket.io")(server, {
@@ -9,14 +8,27 @@ const io = require("socket.io")(server, {
     }
 });
 const messageDao = require("./MessagesDAO");
-app.use(express.json());
+const decode = require("./decode_verify_jwt");
 const NEW_CHAT_MESSAGE_EVENT = "newChatMessage";
 
+app.use(express.json());
+
 io.use((socket, next) => {
-    const userID = socket.handshake.auth.userID;
+    const token = socket.handshake.auth.token;
+    let userID = socket.handshake.auth.userID; // Delete this eventually
+
+    if (token) {
+        try {
+            userID = decode(token)["cognito:username"];
+        } catch (e) {
+            return next(new Error("invalid token"));
+        }
+    }
+
     if (!userID) {
         return next(new Error("invalid username"));
     }
+
     socket.userID = userID;
     next();
 });
@@ -53,6 +65,8 @@ io.on("connection", async socket => {
     console.log("User list:");
     console.log(users);
     socket.join(socket.userID);
+
+    // Emit missed messages to the user
 
     socket.on(NEW_CHAT_MESSAGE_EVENT, ({to, content}) => {
         const users = getUsers();
