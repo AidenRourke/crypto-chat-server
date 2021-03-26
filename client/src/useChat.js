@@ -5,12 +5,12 @@ import {encode} from "base64-arraybuffer"
 import SignalProtocolStore from "./store";
 
 const NEW_CHAT_MESSAGE_EVENT = "newChatMessage";
-const SOCKET_SERVER_URL = "http://Gettingstartedapp-env.eba-sm3mz4hp.us-east-2.elasticbeanstalk.com";
-// const SOCKET_SERVER_URL = "http://localhost:4000";
+// const SOCKET_SERVER_URL = "http://Gettingstartedapp-env.eba-sm3mz4hp.us-east-2.elasticbeanstalk.com";
+const SOCKET_SERVER_URL = "http://localhost:4000";
 
 const DEVICE_ID = 0; // Each one of a users devices has a different device ID (and their own conversation)
 
-const {util, libsignal} = window;
+const { util, libsignal} = window;
 const userStore = new SignalProtocolStore();
 
 const KeyHelper = libsignal.KeyHelper;
