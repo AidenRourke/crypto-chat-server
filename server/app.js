@@ -20,7 +20,9 @@ io.use((socket, next) => {
 
     if (token) {
         try {
-            userID = decode(token)["cognito:username"];
+            const decodedToken = decode(token);
+            console.log(decodedToken);
+            userID = decodedToken["cognito:username"];
         } catch (e) {
             return next(new Error("invalid token"));
         }
