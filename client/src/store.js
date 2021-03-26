@@ -1,4 +1,4 @@
-import {encode, decode} from "base64-arraybuffer"
+import { encode} from "base64-arraybuffer"
 
 function SignalProtocolStore() {
     this.store = {};
@@ -47,7 +47,7 @@ SignalProtocolStore.prototype = {
         if (trusted === undefined) {
             return Promise.resolve(true);
         }
-        return Promise.resolve(decode(identityKey) === decode(trusted));
+        return Promise.resolve(encode(identityKey) === encode(trusted));
     },
     loadIdentityKey: function(identifier) {
         if (identifier === null || identifier === undefined)
@@ -66,7 +66,7 @@ SignalProtocolStore.prototype = {
         var existing = this.get('identityKey' + name);
         this.put('identityKey' + name, identityKey)
 
-        if (existing && decode(identityKey) !== decode(existing)) {
+        if (existing && encode(identityKey) !== encode(existing)) {
             return Promise.resolve(true);
         } else {
             return Promise.resolve(false);

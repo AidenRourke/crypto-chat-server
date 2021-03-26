@@ -28,9 +28,9 @@ const Chats = props => {
         const getPreKeyString = async () => {
             const preKeyString = await getPreKeysString();
             setPreKeyString(preKeyString)
-        }
+        };
         getPreKeyString()
-    }, [])
+    }, []);
 
     const handleSubmit = e => {
         e.preventDefault();
@@ -46,10 +46,10 @@ const Chats = props => {
             preKeyBundle.signedPreKey.signature = decode(preKeyBundle.signedPreKey.signature);
 
             processPreKey(preKeyBundle, to);
-        });
 
-        setTo(to);
-        e.target.reset();
+            setTo(to);
+            e.target.reset();
+        });
     };
 
     const downloadKeys = async () => {
