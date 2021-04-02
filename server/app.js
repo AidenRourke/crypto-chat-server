@@ -9,30 +9,24 @@ const io = require("socket.io")(server, {
     }
 });
 const messageDao = require("./MessagesDAO");
-const decode = require("./decode_verify_jwt");
+const {decode} = require("./decode_verify_jwt");
 const NEW_CHAT_MESSAGE_EVENT = "newChatMessage";
 
 app.use(express.json());
 
 io.use((socket, next) => {
     const token = socket.handshake.auth.token;
-    let userID = socket.handshake.auth.userID; // Delete this eventually
-
-    if (token) {
-        try {
-            const decodedToken = decode(token);
-            console.log(decodedToken);
-            userID = decodedToken["cognito:username"];
-        } catch (e) {
+    try {
+        const decodedToken = decode(token);
+        console.log(`Decoded Username: ${decodedToken.username}`);
+        let userID = decodedToken.username;
+        if (!userID) {
             return next(new Error("invalid token"));
         }
+        socket.userID = userID;
+    } catch (e) {
+        return next(new Error("invalid token"));
     }
-
-    if (!userID) {
-        return next(new Error("invalid username"));
-    }
-
-    socket.userID = userID;
     next();
 });
 
@@ -61,6 +55,8 @@ app.post("/query-messages", async (req, res) => {
         })
     }
 });
+
+// TODO: join on user and device ids
 
 io.on("connection", async socket => {
     const users = getUsers();
